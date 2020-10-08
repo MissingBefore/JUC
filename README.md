@@ -1,28 +1,27 @@
 ---
 本文当用于帮助读者从功能性上理解JUC的功能场景 * 阅读之前请先确定了解集合相关的基础知识 *
+
 ---
 
 # 一、Collections工具类
-
----------
 
 * 该类应用工厂及静态内部类的形式为已有数据结构进行加工，赋予dynamically(checked) 、empty 、immutable(singleton) 、synchronized.所有读写都加对象锁、unmodifiable view(unmodifiable).final修饰对象，写操作throw new UnsupportedOperationException()等特性.*注意*：这里final修饰对象标识的是对象引用，故还需对写操作throw new UnsupportedOperationException().
 
 * Collections对Collection的如下描述进行支持
 
-  * ## View Collections
+  * **View Collections**
 
   * *view collections* themselves do not store elements，Examples of view collections include the wrapper collections returned by methods such as Collections.checkedCollection, Collections.synchronizedCollection, and Collections.unmodifiableCollection.这里的视图概念可以比作引用委派加以理解
 
-  * ## Unmodifiable Collections
+  * **Unmodifiable Collections**
 
   * Certain methods of this interface are considered "destructive" and are called "mutator" methods in that they modify the group of objects contained within the collection on which they operate. 
 
-  * ## Unmodifiable View Collections
+  * **Unmodifiable View Collections**
 
   * An unmodifiable view collection is a collection that is unmodifiable and that is also a view onto a backing collection.The effect is to provide read-only access to the backing collection.This is useful for a component to provide users with read access to an internal collection, while preventing them from modifying such collections unexpectedly. Examples of unmodifiable view collections are those returned by the Collections.unmodifiableCollection, Collections.unmodifiableList, and related methods.只读视图，其他操作会抛UnsupportedOperationException异常
 
-  * ## Serializability of Collections
+  * **Serializability of Collections**
 
   * A collection implementation that implements the `Serializable` interface cannot be guaranteed to be serializable. The reason is that in general, collections contain elements of other types, and it is not possible to determine statically whether instances of some element type are actually serializable. 
 
@@ -30,9 +29,7 @@
 
 # 二、JUC综述
 
---------------
-
-**JUC是对现有数据结构体扩展并发相关的特性，通过精细化锁控制，和对基本数据类型的特性加工用以支持Collections无法满足的应用场景需求**
+**JUC是对现有数据结构体扩展并发相关的特性，通过精细化锁控制，和对基本数据类型的特性加工用以支持Collections无法满足的应用场景需求，并提供了并发情况下的池化解决方案**
 
 JUC并发编程工具包包括如下三个部分：
 
@@ -89,13 +86,11 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 
 **通过上边这个例子我们可以知道JUC的功用在于尽量的减小锁的粒度，从而使并发线程可以低耦合的情况下进行业务处理，在这个putVal方法中还有用到较为重要的方法如：spread(key.hashCode())、initTable()、tabAt(tab, i = (n - 1) & hash)、casTabAt(tab, i, null,new Node<K,V>(hash, key, value, null))，我们在后面的模块中会慢慢讲到**
 
-# 三、JUC的组成官文阅览
-
--------------------
+# 三、JUC的组成官文速览
 
 ### 1.Executors
 
-* #### Interfaces
+* **Interfaces**
 
 | Callable<V>             | A task that returns a result and may throw an exception.     |
 | :---------------------- | ------------------------------------------------------------ |
@@ -107,7 +102,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 | ScheduledExcutorService | An ExecutorService that can schedule commands to run after a given delay, or to execute [^periodically] |
 | ThreadFactory           | An object that creates new threads on demand.                |
 
-* #### Implementations
+* **Implementations**
 
 | ScheduledThreadPoolExecutor | A ThreadPoolExecutor that can additionally schedule commands to run after a given delay, or to execute periodically.为ThreadPoolExecutor添加自定义上下文时间调度 |
 | :-------------------------- | ------------------------------------------------------------ |
@@ -117,13 +112,13 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 
 ### 2.Queues
 
-* #### Interface
+* **Interface**
 
 | BlockingDeque<E> | A Deque that additionally supports blocking operations that wait for the deque to become non-empty when retrieving an element, and wait for space to become available in the deque when storing an element. |
 | :--------------- | ------------------------------------------------------------ |
 | BlockingQueue<E> | A Queue that additionally supports operations that wait for the queue to become non-empty when retrieving an element, and wait for space to become available in the queue when storing an element. |
 
-* #### Implementations
+* **Implementations**
 
 | Class                         | Description                                                  |
 | :---------------------------- | ------------------------------------------------------------ |
@@ -154,16 +149,18 @@ Five classes aid common special-purpose synchronization idioms.
 | Semaphore      | A counting semaphore.                                        |
 | Phaser         | A reusable synchronization barrier, similar in functionality to CyclicBarrier and CountDownLatch but supporting more flexible usage. |
 
-### 5.[Concurrent Collections](注意这里和Collections构造的集合类的比较)
+### 5.Concurrent Collections.
 
-* #### Interface
+注意这里和Collections构造的集合类的比较
+
+* **Interface**
 
 
 | ConcurrentMap<K,V>          | A Map providing thread safety and atomicity guarantees.      |
 | :-------------------------- | ------------------------------------------------------------ |
 | ConcurrentNavigableMap<K,V> | A ConcurrentMap supporting NavigableMap operations, and recursively so for its navigable sub-maps. |
 
-* #### Implementations
+* **Implementations**
 
 
 | Class                      | Description                                                  |
@@ -176,7 +173,7 @@ Five classes aid common special-purpose synchronization idioms.
 | CopyOnWriteArrayList<E>    | A thread-safe variant of ArrayList n which all mutative operations (`add`, `set`, and so on) are implemented by making a fresh copy of the underlying array.写时复制数组列表 |
 | CopyOnWriteArraySet<E>     | A Set that uses an internal CopyOnWriteArraySet for all of its operations. |
 
-### 6.Memory Consistency Properties.内存一致性
+### 6.Memory Consistency Properties.
 
 **内存一致性，即JUC保障JMM内存调度的规则，以下是细则**
 
@@ -200,8 +197,6 @@ Five classes aid common special-purpose synchronization idioms.
 - Actions prior to calling `CyclicBarrier.await` and `Phaser.awaitAdvance` (as well as its variants) *happen-before* actions performed by the barrier action, and actions performed by the barrier action *happen-before* actions subsequent to a successful return from the corresponding `await` in other threads.
 
 # 四、Atomic原子包
-
--------------------
 
 atomic包含原子整型和原子引用类型，主要用于对数据的操作进行原子包装
 
@@ -531,8 +526,6 @@ public class AtomicStampedReferenceTest {
 
 # 五、Locks锁包
 
------------------
-
 ### 1.Summary
 
 * ### Inteface
@@ -812,8 +805,6 @@ public class ReentrantReadWriteLockTest2 {
 
 # 六、Semaphore并发工具类
 
------------------
-
 | CountDownLatch | A synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes. |
 | :------------- | ------------------------------------------------------------ |
 | CyclicBarrier  | A synchronization aid that allows a set of threads to all wait for each other to reach a common barrier point. |
@@ -1002,15 +993,15 @@ public class SemaphoreTest {
 
 # 七、BlockingQueue的补充
 
-| Class                                        | Description                                                  |
-| :------------------------------------------- | ------------------------------------------------------------ |
-| [SynchronousQueue](SynchronousQueue.html)<E> | A blocking queue in which each insert operation must wait for a corresponding remove operation by another thread, and vice versa.**put和take是一对一关系，即生产者消费者1：1** |
-| ArrayBlockingQueue<E>                        | A bounded blocking queue backed by an array.                 |
-| LinkedBlockingDeque<E>                       | An optionally-bounded blocking deque based on linked nodes.  |
-| PriorityBlockingQueue<E>                     | An unbounded blocking queue that uses the same ordering rules as class PriorityQueue and supplies blocking retrieval operations. |
-| DelayQueue<E extends Delayed>                | An unbounded blocking queue of `Delayed` elements, in which an element can only be taken when its delay has expired. |
-| LinkedBlockingQueue<E>                       | An optionally-bounded blocking queue based on linked nodes.  |
-| LinkedTransferQueue<E>                       | An unbounded TransferQueue based on linked nodes.            |
+| Class                         | Description                                                  |
+| :---------------------------- | ------------------------------------------------------------ |
+| SynchronousQueue<E>           | A blocking queue in which each insert operation must wait for a corresponding remove operation by another thread, and vice versa.**put和take是一对一关系，即生产者消费者1：1** |
+| ArrayBlockingQueue<E>         | A bounded blocking queue backed by an array.                 |
+| LinkedBlockingDeque<E>        | An optionally-bounded blocking deque based on linked nodes.  |
+| PriorityBlockingQueue<E>      | An unbounded blocking queue that uses the same ordering rules as class PriorityQueue and supplies blocking retrieval operations. |
+| DelayQueue<E extends Delayed> | An unbounded blocking queue of `Delayed` elements, in which an element can only be taken when its delay has expired. |
+| LinkedBlockingQueue<E>        | An optionally-bounded blocking queue based on linked nodes.  |
+| LinkedTransferQueue<E>        | An unbounded TransferQueue based on linked nodes.            |
 
 **想要了解线程池就必须JUC提供的阻塞队列，阻塞队列是典型的生产者消费者模式，生产者消费者又分一对一，和多对多**
 
@@ -1265,8 +1256,8 @@ public class BlockQueueDemo {
 
 ---------------------------------
 
-[^subsequent ]:随后的
-[^prior ]:首先的
-[^scalable ]:可扩展的
-[^periodically]:定期地.
-[^tasks]:任务
+[^subsequent ]: 随后的
+[^prior ]: 首先的
+[^scalable ]: 可扩展的
+[^periodically]: 定期地.
+[^tasks]: 任务
